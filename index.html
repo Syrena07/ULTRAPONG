@@ -1,0 +1,141 @@
+<canvas id="canvas" width="1350" height="638" style="background-color:black;"></canvas>
+<script>
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext('2d');
+let p1 = 266;
+let p2 = 266;
+let key = {};
+let ball = {x: 39, y: 319, speedX: 10, speedY: 0.01};
+let p1X = 19;
+let p2X = 1312;
+let start = true;
+let startgame = false;
+let gameover = false;
+let p1Score = 0;
+let p2Score = 0;
+
+document.addEventListener('keydown', e => {
+    key[e.keyCode] = true;
+    if (e.keyCode === 32 && start) { // Leertaste
+        start = false;
+        startgame = true;
+    }
+    if (e.keyCode === 32 && gameover) { // Leertaste für Neustart
+        resetGame();
+    }
+});
+
+document.addEventListener('keyup', e => key[e.keyCode] = false);
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (start) {
+        ctx.fillStyle = 'white';
+        ctx.font = "50px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("ULTRAPONG", canvas.width / 2, 200);
+        ctx.font = "30px Arial";
+        ctx.fillText("Press Spacebar to Start", canvas.width / 2, 400);
+    } else if (startgame) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(p1X, p1, 19, 106);
+        ctx.fillRect(p2X, p2, 19, 106);
+        ctx.fillRect(ball.x, ball.y, 19, 19);
+        ctx.font = "30px Arial";
+        ctx.fillText(p1Score, 100, 50);
+        ctx.fillText(p2Score, canvas.width - 100, 50);
+    } else if (gameover) {
+        ctx.fillStyle = 'white';
+        ctx.font = "50px Arial";
+        ctx.textAlign = "center";
+        if (p1Score === 10) {
+            ctx.fillText("Winner", 200, canvas.height / 2);
+        } else if (p2Score === 10) {
+            ctx.fillText("Winner", canvas.width - 200, canvas.height / 2);
+        }
+        ctx.font = "30px Arial";
+        ctx.fillText("Press Spacebar to Restart", canvas.width / 2, canvas.height / 2 + 50);
+    }
+}
+
+function loop() {
+    if (startgame) {
+        if (key[38]) { p2 -= 5; }
+        if (key[40]) { p2 += 5; }
+        if (key[87]) { p1 -= 5; }
+        if (key[83]) { p1 += 5; }
+
+        if (ball.x < 0) {
+            p2Score++;
+            checkWinner();
+            resetBall();
+        } else if (ball.x > canvas.width) {
+            p1Score++;
+            checkWinner();
+            resetBall();
+        }
+
+        if (ball.x >= 1293 && ball.y >= p2 && ball.y <= p2 + 106) {
+            ball.speedX = -ball.speedX;
+        }
+        if (ball.x <= 38 && ball.y >= p1 && ball.y <= p1 + 106) {
+            ball.speedX = -ball.speedX;
+        }
+        if (p1 < 0) { p1 = 0; }
+        if (p2 < 0) { p2 = 0; }
+        if (p1 > canvas.height - 106) { p1 = canvas.height - 106; }
+        if (p2 > canvas.height - 106) { p2 = canvas.height - 106; }
+        if (ball.y < 0 || ball.y > canvas.height - 19) {
+            ball.speedY = -ball.speedY;
+        }
+
+        adjustBallSpeed();
+
+        ball.x += ball.speedX;
+        ball.y += ball.speedY;
+    }
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function checkWinner() {
+    if (p1Score === 10 || p2Score === 10) {
+        startgame = false;
+        gameover = true;
+    }
+}
+
+function resetBall() {
+    ball = {x: 39, y: 319, speedX: 10, speedY: 0.01};
+}
+
+function resetGame() {
+    p1Score = 0;
+    p2Score = 0;
+    p1 = 266;
+    p2 = 266;
+    start = true;
+    startgame = false;
+    gameover = false;
+    resetBall();
+}
+
+function adjustBallSpeed() {
+    const baseSpeedX = 10;
+    if (ball.x >= 1293 && ball.y >= p2 && ball.y <= p2 + 106) {
+        if (key[38] && ball.speedY > 0) { ball.speedY -= 3; }
+        if (key[38] && ball.speedY < 0) { ball.speedY -= 3; }
+        if (key[40] && ball.speedY > 0) { ball.speedY += 3; }
+        if (key[40] && ball.speedY < 0) { ball.speedY += 3; }
+    }
+    if (ball.x <= 38 && ball.y >= p1 && ball.y <= p1 + 106) {
+        if (key[87] && ball.speedY > 0) { ball.speedY -= 3; }
+        if (key[87] && ball.speedY < 0) { ball.speedY -= 3; }
+        if (key[83] && ball.speedY > 0) { ball.speedY += 3; }
+        if (key[83] && ball.speedY < 0) { ball.speedY += 3; }
+    }
+    ball.speedX = ball.speedX < 0 ? -baseSpeedX : baseSpeedX;
+}
+
+loop();
+</script>
